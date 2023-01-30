@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="common.css" />
+    <title>Cranach Web AR</title>
+  </head>
+  <body>
+    <div id="overlay">
+      <header>
+        <details closed>
+          <summary>Cranach Web AR</summary>
+          <p>
+            Rapid Prototype of the Cranach Web AR
+            <a class="back" href="./">Back</a>
+          </p>
+          <div id="pose"></div>
+          <div id="hittest"></div>
+          <div id="anchor"></div>
+          <div id="log"></div>
+          <div id="reset"></div>
+          <div id="matrix"></div>
+        </details>
+      </header>
+      <div id="info">
+        <div>Name: <span id="name"></span></div>
+        <div>Date: <span id="date"></span></div>
+        <div>Size: <span id="size"></span></div>
+      </div>
+      <div id="onBoarding"></div>
+      <div id="HowTo"></div>
+      <div id="container">
+        <canvas id="canvas"></canvas>
+        <canvas id="text"></canvas>
+      </div>
+    </div>
+    <div class="centered">
+      <button data-action="change"></button>
+    </div>
+    <script src="https://webgl2fundamentals.org/webgl/resources/webgl-utils.js"></script>
+    <script src="https://webgl2fundamentals.org/webgl/resources/m4.js"></script>
+    <script type="module" src="script.js"></script>
+  </body>
+</html>
