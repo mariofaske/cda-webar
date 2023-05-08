@@ -58,7 +58,7 @@ let xrRefSpace = null;
 let xrViewerSpace = null;
 let xrHitTestSource = null;
 
-const userTests = true;
+const userTests = false;
 let userData = {};
 
 // WebGL scene globals.
@@ -99,6 +99,8 @@ var infoElement = document.querySelector("#info");
 infoElement.style.display = "none";
 
 var onBoardingElement = document.querySelector("#onBoarding");
+var loader = document.querySelector("#loader");
+loader.style.display = "none";
 
 var howToElement = document.querySelector("#howTo");
 
@@ -173,9 +175,12 @@ function onSessionStarted(session) {
   }
   scene.inputRenderer.useProfileControllerMeshes(session);
 
-  onBoardingElement.textContent =
+  /* onBoardingElement.textContent =
     "System calibration in progress... Please move back one step, hold still and wait for the calibration to complete.";
-
+ */
+  loader.style.display = "block";
+  onBoardingElement.textContent =
+    "Bitte NICHT BEWEGEN während der Kalibrierung";
   session.updateRenderState({ baseLayer: new XRWebGLLayer(session, gl) });
 
   session.requestReferenceSpace("viewer").then((refSpace) => {
@@ -265,7 +270,7 @@ function addAnchoredObjectToScene(anchor, imagePosition, anchorPose) {
   //removeStats();
   infoElement.style.display = "none";
 
-  let tempArray = [];
+  /*   let tempArray = [];
   for (let index = 0; index < scene.children.length; index++) {
     const element = scene.children[index];
     const text = element.name;
@@ -273,8 +278,8 @@ function addAnchoredObjectToScene(anchor, imagePosition, anchorPose) {
       tempArray.push(element);
     }
   }
-  scene.children = tempArray;
-  anchoredObjects = [];
+  scene.children = tempArray; */
+  //anchoredObjects = [];
 
   let image = getImage(imagePosition);
 
@@ -282,6 +287,35 @@ function addAnchoredObjectToScene(anchor, imagePosition, anchorPose) {
 
   textureNode.name = `image_${image.date}`;
 
+  /*   anchoredObjects.forEach((element) => {
+        if (element.imageInfo.date.includes(image.date)) {
+          hitObject = element;
+        }
+      }); */
+
+  //console.log(scene.children);
+
+  var indexOfObjectInScene = scene.children.findIndex((element) => {
+    /*     console.log(element.name + " " + image.date);
+    console.log(typeof element.name); */
+    if (
+      element.name != null &&
+      !element.name.includes("button") &&
+      !element.name.includes("part")
+    )
+      return element.name.includes("image_" + image.date);
+  });
+
+  if (indexOfObjectInScene != -1) {
+    scene.children.splice(indexOfObjectInScene, 1);
+  }
+
+  var indexOfObject = anchoredObjects.findIndex((element) =>
+    element.imageInfo.date.includes(image.date)
+  );
+  if (indexOfObject != -1) {
+    anchoredObjects.splice(indexOfObject, 1);
+  }
   scene.addNode(textureNode);
 
   anchoredObjects.push({
@@ -312,7 +346,8 @@ function addPart(anchorPose, image) {
     const element = scene.children[index];
     if (element.name != null) {
       const name = element.name;
-      if (name.includes("image")) {
+      if (name.includes("image_1515")) {
+        console.log(scene.children[index]);
         scene.children[index].visible = false;
       }
       /*       if (name.includes("button")) {
@@ -330,7 +365,9 @@ function addPart(anchorPose, image) {
     anchorPose.position.y,
     anchorPose.position.z,
   ];
+
   scene.addNode(partOfImage);
+
   partShown = true;
 }
 
@@ -346,10 +383,14 @@ function addButton(anchorPose, image) {
         const element = scene.children[index];
         if (element.name != null) {
           const name = element.name;
-          if (name.includes("part")) {
+          if (name.includes("part_1515")) {
+            console.log("Part?: " + name);
+            console.log(scene.children[index]);
             scene.children[index].visible = false;
           }
-          if (name.includes("image")) {
+          if (name.includes("image_1515")) {
+            console.log("Image?: " + name);
+            console.log(scene.children[index]);
             scene.children[index].visible = true;
           }
         }
@@ -369,6 +410,31 @@ function addButton(anchorPose, image) {
     anchorPose.position.y - 1,
     anchorPose.position.z,
   ];
+
+  var indexOfObjectInScene = scene.children.findIndex((element) => {
+    /*     console.log(element.name + " " + image.date);
+    console.log(typeof element.name); */
+    if (
+      element.name != null &&
+      !element.name.includes("image") &&
+      !element.name.includes("part")
+    )
+      return element.name.includes("button_" + image.date);
+  });
+  console.log(indexOfObjectInScene);
+
+  if (indexOfObjectInScene != -1) {
+    scene.children.splice(indexOfObjectInScene, 1);
+  }
+
+  /*   var indexOfObject = anchoredObjects.findIndex((element) =>
+    element.imageInfo.date.includes(image.date)
+  );
+  console.log(indexOfObject);
+  if (indexOfObject != -1) {
+    anchoredObjects.splice(indexOfObject, 1);
+  } */
+
   scene.addNode(partOfButton);
 
   const d = new Date();
@@ -576,9 +642,12 @@ function addStats(imageInfo, statsPose) {
 
   //scene.children[scene.children.length - 1].text = `${imageInfo.date}`;
 
-  anchoredObjects[0].showStats = true;
+  var indexOfObject = anchoredObjects.findIndex((element) =>
+    element.anchoredObject.name.includes(imageInfo.date)
+  );
+  console.log(indexOfObject);
+  anchoredObjects[indexOfObject].showStats = true;
   //console.log(stats.children);
-
   nameElement.textContent = imageInfo.name;
   dateElement.textContent = imageInfo.date;
   sizeElement.textContent = `${imageInfo.real_size.width} x ${imageInfo.real_size.height} cm`;
@@ -640,10 +709,10 @@ function onSelect(event) {
     { x: imagePosition, y: 0, z: p.z },
     { x: 0, y: 0, z: 0, w: 1 }
   );
-  let statsPose = new XRRigidTransform(
+  /*   let statsPose = new XRRigidTransform(
     { x: imagePosition, y: p.y, z: p.z + 0.1 },
     { x: 0, y: 0, z: 0, w: 1 }
-  );
+  ); */
 
   if (reticle.visible && hitResult == null) {
     frame.createAnchor(anchorPose, xrRefSpace).then(
@@ -660,22 +729,47 @@ function onSelect(event) {
     );
   } else {
     let name = hitResult.node.name;
+    //console.log(hitResult.node);
     if (name.includes("button")) {
       return;
     }
-    if (!anchoredObjects[0].showStats) {
+    //console.log(anchoredObjects);
+    //console.log("hitResultName: " + name);
+    if (name.includes("part")) {
+      name = name.replace("part_", "image_");
+    }
+    //console.log("name: " + name);
+    var indexOfObject = anchoredObjects.findIndex((element) =>
+      element.anchoredObject.name.includes(name)
+    );
+    //console.log("indexOfObject: " + indexOfObject);
+    if (!anchoredObjects[indexOfObject].showStats) {
       let statsPose = new XRRigidTransform(
         { x: imagePosition, y: p.y, z: p.z + 0.1 },
         { x: 0, y: 0, z: 0, w: 1 }
       );
+      /*       let hitObject;
+      anchoredObjects.forEach((element) => {
+        if (element.anchoredObject.name.includes(name)) {
+          hitObject = element;
+        }
+      }); */
+
       if (partShown) {
-        addStats(anchoredObjects[0].imageInfo.part, statsPose);
+        //addStats(hitObject.imageInfo.part, statsPose);
+        if (anchoredObjects[indexOfObject].imageInfo.part != null)
+          addStats(anchoredObjects[indexOfObject].imageInfo.part, statsPose);
+        else addStats(anchoredObjects[indexOfObject].imageInfo, statsPose);
       } else {
-        addStats(anchoredObjects[0].imageInfo, statsPose);
+        //addStats(hitObject.imageInfo, statsPose);
+        addStats(anchoredObjects[indexOfObject].imageInfo, statsPose);
       }
     } else {
       //removeStats();
-      anchoredObjects[0].showStats = false;
+      //hitObject.showStats = false;
+      console.log("indexOfObject: " + indexOfObject);
+      console.log("showStats: " + anchoredObjects[indexOfObject].showStats);
+      anchoredObjects[indexOfObject].showStats = false;
       infoElement.style.display = "none";
     }
     //console.log(anchoredObjects[0].imageInfo);
@@ -734,6 +828,7 @@ function onXRFrame(t, frame) {
       reticle.matrix = pose.transform.matrix;
       reticleHitTestResult = hitTestResults[0];
       onBoardingElement.style.display = "none";
+      loader.style.display = "none";
       if (!timelineShown) {
         var dates = getImageData();
         for (let index = 0; index < dates.length; index++) {
